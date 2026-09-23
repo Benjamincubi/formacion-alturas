@@ -1,9 +1,12 @@
 import streamlit as st
 import requests
-import time
+from streamlit_autorefresh import st_autorefresh
 
 # Configuración de página
 st.set_page_config(page_title="Gestor de Alturas - Formación", layout="wide")
+
+# AUTO-RECARGA EN VIVO (Cada 3000 ms = 3 segundos) de forma limpia sin duplicar la grilla
+st_autorefresh(interval=3000, limit=None, key="formacion_autorefresh")
 
 FIREBASE_URL = "https://formacion-cupro-alfa-default-rtdb.firebaseio.com/personas.json"
 
@@ -61,7 +64,7 @@ personas_db = obtener_datos()
 
 st.title("🔴 Gestor de Alturas - Formación")
 
-# --- MEJORA 3: RESUMEN DE PRESENTES Y AUSENTES ---
+# --- RESUMEN DE PRESENTES Y AUSENTES ---
 total_efectivos = len(personas_db)
 presentes_list = [v for v in personas_db.values() if v.get("presente", False)]
 ausentes_list = [v for v in personas_db.values() if not v.get("presente", False)]
@@ -103,7 +106,7 @@ if mi_nombre != "-- Seleccionar --":
 
 st.divider()
 
-# --- VISTA EN GRILLA ---
+# --- VISTA EN GRILLA (ORDENADA DE MAYOR A MENOR DERECHA A IZQUIERDA) ---
 st.subheader("📐 Formación en Vivo")
 frente = st.slider("Frente (Columnas):", min_value=1, max_value=12, value=6)
 
@@ -123,43 +126,47 @@ else:
     total_p = len(presentes)
     num_filas = (total_p + num_columnas - 1) // num_columnas
 
-    for fila in range(num_filas):
-        cols = st.columns(num_columnas)
-        for col_index in range(num_columnas):
-            idx = fila * num_columnas + col_index
-            col_invertida = (num_columnas - 1) - col_index
-            
-            if idx < total_p:
-                posicion = idx + 1
-                _, nombre, altura = presentes[idx]
-                nombre_limpio = nombre.replace("OP ", "")
+    # Contenedor limpio para evitar elementos en caché
+    grilla_container = st.container()
+
+    with grilla_container:
+        for fila in range(num_filas):
+            cols = st.columns(num_columnas)
+            for col_index in range(num_columnas):
+                idx = fila * num_columnas + col_index
+                col_invertida = (num_columnas - 1) - col_index
                 
-                with cols[col_invertida]:
-                    st.markdown(
-                        f"""
-                        <div style="
-                            background-color: #E53935;
-                            color: white;
-                            border-radius: 50%;
-                            width: 85px;
-                            height: 85px;
-                            display: flex;
-                            flex-direction: column;
-                            align-items: center;
-                            justify-content: center;
-                            text-align: center;
-                            font-size: 11px;
-                            font-weight: bold;
-                            margin: 5px auto;
-                            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
-                        ">
-                            <div>({posicion})</div>
-                            <div>{nombre_limpio}</div>
-                            <div>{altura:.2f}m</div>
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
+                if idx < total_p:
+                    posicion = idx + 1
+                    _, nombre, altura = presentes[idx]
+                    nombre_limpio = nombre.replace("OP ", "")
+                    
+                    with cols[col_invertida]:
+                        st.markdown(
+                            f"""
+                            <div style="
+                                background-color: #E53935;
+                                color: white;
+                                border-radius: 50%;
+                                width: 85px;
+                                height: 85px;
+                                display: flex;
+                                flex-direction: column;
+                                align-items: center;
+                                justify-content: center;
+                                text-align: center;
+                                font-size: 11px;
+                                font-weight: bold;
+                                margin: 5px auto;
+                                box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+                            ">
+                                <div>({posicion})</div>
+                                <div>{nombre_limpio}</div>
+                                <div>{altura:.2f}m</div>
+                            </div>
+                            """,
+                            unsafe_allow_html=True
+                        )
 
 st.divider()
 
@@ -185,7 +192,6 @@ if nombres_ausentes:
                 st.success("Novedad guardada.")
                 st.rerun()
 
-    # Tabla resumen de novedosos
     st.markdown("**Detalle de ausencias registradas:**")
     ausencias_con_motivo = [
         {"Nombre": v["nombre"], "Motivo / Novedad": v.get("novedad", "Sin registrar")}
@@ -197,7 +203,7 @@ else:
 
 st.divider()
 
-# --- MEJORA 2: ACCIONES GLOBALES PROTEGIDAS (Alejadas para evitar toques accidentales) ---
+# --- ACCIONES GLOBALES PROTEGIDAS ---
 with st.expander("⚙️ Acciones Globales (Reinicio de Formación / Carga Masiva)"):
     st.warning("⚠️ Cuidado: Estas opciones modifican el estado de TODO el personal.")
     col_btn1, col_btn2 = st.columns(2)
@@ -215,7 +221,3 @@ with st.expander("⚙️ Acciones Globales (Reinicio de Formación / Carga Masiv
             requests.put(FIREBASE_URL, json=datos_actualizados)
             st.warning("Se reinició la lista. Todos marcados como ausentes.")
             st.rerun()
-
-# --- MEJORA 1: AUTO-RECARGA CADA 3 SECUNDOS ---
-time.sleep(3)
-st.rerun()
