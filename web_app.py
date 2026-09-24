@@ -90,43 +90,43 @@ CRONOGRAMA_ENCARGADOS = [
     {"fecha": "20/07/2027", "encargada": "OP Daiana Elizabeth MERINO", "encargado": "OP Claudio NUÑEZ"}
 ]
 
-LISTA_CUMPLEANOS = [
-    {"nombre": "Diego Nicolas ACUÑA", "fecha_str": "Sin registrar", "dia": None, "mes": None},
-    {"nombre": "Luciana Belen AGUERO", "fecha_str": "04 de junio", "dia": 4, "mes": 6},
-    {"nombre": "Florencia Jazmin ANDRADE", "fecha_str": "12 de mayo", "dia": 12, "mes": 5},
-    {"nombre": "Ariel Joaquin ARIAS UCEDO", "fecha_str": "Sin registrar", "dia": None, "mes": None},
-    {"nombre": "Karen Ivonne BRIZUELA", "fecha_str": "25 de mayo", "dia": 25, "mes": 5},
-    {"nombre": "Julieta Anabella BRUNEL", "fecha_str": "30 de junio", "dia": 30, "mes": 6},
-    {"nombre": "Tomas CAPELLA", "fecha_str": "01 de marzo", "dia": 1, "mes": 3},
-    {"nombre": "Santiago CASSOL", "fecha_str": "12 de diciembre", "dia": 12, "mes": 12},
-    {"nombre": "Benjamin David CUBI", "fecha_str": "17 de abril", "dia": 17, "mes": 4},
-    {"nombre": "Maria DIAZ VARSI", "fecha_str": "27 de junio", "dia": 27, "mes": 6},
-    {"nombre": "Maria Celeste ESCALANTE", "fecha_str": "Sin registrar", "dia": None, "mes": None},
-    {"nombre": "Rodolfo Octavio FERNANDEZ", "fecha_str": "05 de septiembre", "dia": 5, "mes": 9},
-    {"nombre": "Ruben Alfredo FERNANDEZ", "fecha_str": "06 de diciembre", "dia": 6, "mes": 12},
-    {"nombre": "Federico Hernan FLORES", "fecha_str": "Sin registrar", "dia": None, "mes": None},
-    {"nombre": "Lorena Natividad GIMENEZ BAUTISTA", "fecha_str": "29 de febrero", "dia": 29, "mes": 2},
-    {"nombre": "Agustina Gisele GONZALEZ", "fecha_str": "28 de mayo", "dia": 28, "mes": 5},
-    {"nombre": "Exequiel IGLESIAS", "fecha_str": "22 de octubre", "dia": 22, "mes": 10},
-    {"nombre": "Federico Andres LOPEZ", "fecha_str": "18 de junio", "dia": 18, "mes": 6},
-    {"nombre": "Melina Gisel LUFT", "fecha_str": "03 de septiembre", "dia": 3, "mes": 9},
-    {"nombre": "Ivana Nazarena MARS", "fecha_str": "23 de abril", "dia": 23, "mes": 4},
-    {"nombre": "Maria Isabel MEDINA", "fecha_str": "12 de junio", "dia": 12, "mes": 6},
-    {"nombre": "Carolina Abigail MELI", "fecha_str": "20 de agosto", "dia": 20, "mes": 8},
-    {"nombre": "Daiana Elizabeth MERINO", "fecha_str": "20 de septiembre", "dia": 20, "mes": 9},
-    {"nombre": "Martina Belen MICHALUK", "fecha_str": "Sin registrar", "dia": None, "mes": None},
-    {"nombre": "Rocio NEIRA", "fecha_str": "10 de noviembre", "dia": 10, "mes": 11},
-    {"nombre": "Claudio Hernan NUÑEZ", "fecha_str": "04 de enero", "dia": 4, "mes": 1},
-    {"nombre": "Maria Pia ORIBE", "fecha_str": "18 de octubre", "dia": 18, "mes": 10},
-    {"nombre": "Veronica Ayelen OTERO", "fecha_str": "18 de abril", "dia": 18, "mes": 4},
-    {"nombre": "Jorge Santiago Ruben PELOSO", "fecha_str": "31 de enero", "dia": 31, "mes": 1},
-    {"nombre": "Paola Margarita PEREIRA", "fecha_str": "29 de marzo", "dia": 29, "mes": 3},
-    {"nombre": "Micaela Agustina PEREYRA HERRERA", "fecha_str": "14 de diciembre", "dia": 14, "mes": 12},
-    {"nombre": "Agñel Soledad RAMOS", "fecha_str": "29 de abril", "dia": 29, "mes": 4},
-    {"nombre": "Paula Vanesa SANCHEZ", "fecha_str": "12 de octubre", "dia": 12, "mes": 10},
-    {"nombre": "Maria Belen SIGNORIO", "fecha_str": "31 de octubre", "dia": 31, "mes": 10},
-    {"nombre": "Lucia Maria Fernanda SOTO BABICKI", "fecha_str": "22 de julio", "dia": 22, "mes": 7},
-    {"nombre": "Emilia Alejandra TOLEDO", "fecha_str": "13 de febrero", "dia": 13, "mes": 2}
+LISTA_CUMPLEANOS_RAW = [
+    ("Diego Nicolas ACUÑA", None, None),
+    ("Luciana Belen AGUERO", 4, 6),
+    ("Florencia Jazmin ANDRADE", 12, 5),
+    ("Ariel Joaquin ARIAS UCEDO", None, None),
+    ("Karen Ivonne BRIZUELA", 25, 5),
+    ("Julieta Anabella BRUNEL", 30, 6),
+    ("Tomas CAPELLA", 1, 3),
+    ("Santiago CASSOL", 12, 12),
+    ("Benjamin David CUBI", 17, 4),
+    ("Maria DIAZ VARSI", 27, 6),
+    ("Maria Celeste ESCALANTE", None, None),
+    ("Rodolfo Octavio FERNANDEZ", 5, 9),
+    ("Ruben Alfredo FERNANDEZ", 6, 12),
+    ("Federico Hernan FLORES", None, None),
+    ("Lorena Natividad GIMENEZ BAUTISTA", 29, 2),
+    ("Agustina Gisele GONZALEZ", 28, 5),
+    ("Exequiel IGLESIAS", 22, 10),
+    ("Federico Andres LOPEZ", 18, 6),
+    ("Melina Gisel LUFT", 3, 9),
+    ("Ivana Nazarena MARS", 23, 4),
+    ("Maria Isabel MEDINA", 12, 6),
+    ("Carolina Abigail MELI", 20, 8),
+    ("Daiana Elizabeth MERINO", 20, 9),
+    ("Martina Belen MICHALUK", None, None),
+    ("Rocio NEIRA", 10, 11),
+    ("Claudio Hernan NUÑEZ", 4, 1),
+    ("Maria Pia ORIBE", 18, 10),
+    ("Veronica Ayelen OTERO", 18, 4),
+    ("Jorge Santiago Ruben PELOSO", 31, 1),
+    ("Paola Margarita PEREIRA", 29, 3),
+    ("Micaela Agustina PEREYRA HERRERA", 14, 12),
+    ("Agñel Soledad RAMOS", 29, 4),
+    ("Paula Vanesa SANCHEZ", 12, 10),
+    ("Maria Belen SIGNORIO", 31, 10),
+    ("Lucia Maria Fernanda SOTO BABICKI", 22, 7),
+    ("Emilia Alejandra TOLEDO", 13, 2)
 ]
 
 def obtener_datos():
@@ -154,16 +154,15 @@ def verificar_cumpleanos_proximos():
     fin_semana_entrante = inicio_semana + timedelta(days=13)
     
     cumpleaneros = []
-    for persona in LISTA_CUMPLEANOS:
-        if persona["dia"] and persona["mes"]:
+    for nombre, dia, mes in LISTA_CUMPLEANOS_RAW:
+        if dia and mes:
             try:
-                cumple_ano_actual = datetime(hoy.year, persona["mes"], persona["dia"]).date()
+                cumple_ano_actual = datetime(hoy.year, mes, dia).date()
             except ValueError:
-                # Caso para 29 de febrero en año no bisiesto
                 cumple_ano_actual = datetime(hoy.year, 3, 1).date()
                 
             if inicio_semana <= cumple_ano_actual <= fin_semana_entrante:
-                cumpleaneros.append((persona["nombre"], persona["fecha_str"]))
+                cumpleaneros.append((nombre, f"{dia:02d}/{mes:02d}"))
     return cumpleaneros
 
 personas_db = obtener_datos()
@@ -175,7 +174,7 @@ if "vista_actual" not in st.session_state:
 def ir_a(vista):
     st.session_state["vista_actual"] = vista
 
-# --- TITULO PRINCIPAL ---
+# --- TÍTULO PRINCIPAL ---
 st.title("🔴 Gestor de Alturas - Formación")
 
 # --- ALERTA DE CUMPLEAÑOS SEMANA ACTUAL Y ENTRANTE ---
@@ -207,13 +206,17 @@ if st.session_state["vista_actual"] == "menu":
         if st.button("⭐ Encargados de Turno", use_container_width=True):
             ir_a("encargados")
             st.rerun()
-            
-        if st.button("📏 Modificar Altura", use_container_width=True):
-            ir_a("modificar_altura")
+
+        if st.button("✅ Dar Presente", use_container_width=True):
+            ir_a("dar_presente")
             st.rerun()
             
-        if st.button("✅ Dar Presente / ❌ Dar Ausente", use_container_width=True):
-            ir_a("presente_ausente")
+        if st.button("❌ Registrar Ausente", use_container_width=True):
+            ir_a("dar_ausente")
+            st.rerun()
+
+        if st.button("📏 Modificar Altura", use_container_width=True):
+            ir_a("modificar_altura")
             st.rerun()
 
         if st.button("📐 Formación en Vivo", use_container_width=True):
@@ -269,7 +272,60 @@ elif st.session_state["vista_actual"] == "encargados":
         st.dataframe(CRONOGRAMA_ENCARGADOS, use_container_width=True)
 
 # ==========================================
-# 2. BOTÓN MODIFICAR ALTURA
+# 2. BOTÓN DAR PRESENTE (INDEPENDIENTE)
+# ==========================================
+elif st.session_state["vista_actual"] == "dar_presente":
+    if st.button("⬅️ Volver al Menú Principal"):
+        ir_a("menu")
+        st.rerun()
+
+    st.subheader("✅ Dar Presente")
+    nombres = [v["nombre"] for k, v in sorted(personas_db.items())] if personas_db else []
+    mi_nombre = st.selectbox("Seleccioná tu Nombre:", ["-- Seleccionar --"] + nombres)
+
+    if mi_nombre != "-- Seleccionar --":
+        pid = [k for k, v in personas_db.items() if v["nombre"] == mi_nombre][0]
+        pdata = personas_db[pid]
+        
+        estado_actual = "Presente" if pdata.get("presente", False) else "Ausente"
+        st.write(f"Estado actual: **{estado_actual}**")
+
+        if st.button("Confirmar PRESENTE", type="primary", use_container_width=True):
+            url_node = FIREBASE_URL.replace(".json", f"/{pid}.json")
+            requests.patch(url_node, json={"presente": True, "novedad": ""})
+            st.success("✅ Marcado como PRESENTE.")
+            st.rerun()
+
+# ==========================================
+# 3. BOTÓN REGISTRAR AUSENTE (INDEPENDIENTE)
+# ==========================================
+elif st.session_state["vista_actual"] == "dar_ausente":
+    if st.button("⬅️ Volver al Menú Principal"):
+        ir_a("menu")
+        st.rerun()
+
+    st.subheader("❌ Registrar Causa de Ausencia")
+    nombres = [v["nombre"] for k, v in sorted(personas_db.items())] if personas_db else []
+    mi_nombre = st.selectbox("Seleccioná tu Nombre:", ["-- Seleccionar --"] + nombres)
+
+    if mi_nombre != "-- Seleccionar --":
+        pid = [k for k, v in personas_db.items() if v["nombre"] == mi_nombre][0]
+        pdata = personas_db[pid]
+        
+        motivo = st.text_input(
+            "Causa / Motivo de ausencia:", 
+            value=pdata.get("novedad", ""), 
+            placeholder="Ej: Licencia médica, Franco, Comisión de servicio..."
+        )
+        
+        if st.button("Confirmar AUSENCIA", type="primary", use_container_width=True):
+            url_node = FIREBASE_URL.replace(".json", f"/{pid}.json")
+            requests.patch(url_node, json={"presente": False, "novedad": motivo})
+            st.warning("❌ Registrado como AUSENTE con la novedad ingresada.")
+            st.rerun()
+
+# ==========================================
+# 4. BOTÓN MODIFICAR ALTURA
 # ==========================================
 elif st.session_state["vista_actual"] == "modificar_altura":
     if st.button("⬅️ Volver al Menú Principal"):
@@ -292,44 +348,7 @@ elif st.session_state["vista_actual"] == "modificar_altura":
             st.rerun()
 
 # ==========================================
-# 3. BOTÓN PRESENTE / AUSENTE
-# ==========================================
-elif st.session_state["vista_actual"] == "presente_ausente":
-    if st.button("⬅️ Volver al Menú Principal"):
-        ir_a("menu")
-        st.rerun()
-
-    st.subheader("👤 Marcar Estado Individual (Presente / Ausente)")
-    nombres = [v["nombre"] for k, v in sorted(personas_db.items())] if personas_db else []
-    mi_nombre = st.selectbox("Seleccioná tu Nombre:", ["-- Seleccionar --"] + nombres)
-
-    if mi_nombre != "-- Seleccionar --":
-        pid = [k for k, v in personas_db.items() if v["nombre"] == mi_nombre][0]
-        pdata = personas_db[pid]
-        
-        estado_actual = "Presente" if pdata.get("presente", False) else "Ausente"
-        st.write(f"Estado actual: **{estado_actual}**")
-
-        col_pres, col_aus = st.columns(2)
-        
-        with col_pres:
-            if st.button("✅ Dar Presente", use_container_width=True, type="primary"):
-                url_node = FIREBASE_URL.replace(".json", f"/{pid}.json")
-                requests.patch(url_node, json={"presente": True, "novedad": ""})
-                st.success("Marcado como PRESENTE.")
-                st.rerun()
-
-        with col_aus:
-            st.markdown("#### ❌ Marcar Ausente")
-            motivo = st.text_input("Motivo de ausencia / Novedad:", value=pdata.get("novedad", ""), placeholder="Ej: Licencia médica, Servicio...")
-            if st.button("Confirmar Ausencia", use_container_width=True):
-                url_node = FIREBASE_URL.replace(".json", f"/{pid}.json")
-                requests.patch(url_node, json={"presente": False, "novedad": motivo})
-                st.warning("Marcado como AUSENTE.")
-                st.rerun()
-
-# ==========================================
-# 4. BOTÓN FORMACIÓN EN VIVO
+# 5. BOTÓN FORMACIÓN EN VIVO
 # ==========================================
 elif st.session_state["vista_actual"] == "formacion":
     if st.button("⬅️ Volver al Menú Principal"):
@@ -415,7 +434,7 @@ elif st.session_state["vista_actual"] == "formacion":
             )
 
 # ==========================================
-# 5. BOTÓN CUMPLEAÑOS
+# 6. BOTÓN CUMPLEAÑOS (SIMPLIFICADO + BUSCADOR)
 # ==========================================
 elif st.session_state["vista_actual"] == "cumpleanos":
     if st.button("⬅️ Volver al Menú Principal"):
@@ -423,10 +442,27 @@ elif st.session_state["vista_actual"] == "cumpleanos":
         st.rerun()
 
     st.subheader("🎂 Listado de Cumpleaños")
-    st.dataframe(LISTA_CUMPLEANOS, use_container_width=True)
+
+    # Preparar lista limpia
+    tabla_cumples = []
+    for nombre, dia, mes in LISTA_CUMPLEANOS_RAW:
+        fecha_fmt = f"{dia:02d}/{mes:02d}" if (dia and mes) else "Sin registrar"
+        tabla_cumples.append({"Nombre Completo": nombre, "Cumpleaños": fecha_fmt})
+
+    # Buscador de personas
+    busqueda = st.text_input("🔍 Buscar persona en la lista:", placeholder="Escribí un nombre o apellido...")
+    
+    if busqueda:
+        tabla_filtrada = [
+            p for p in tabla_cumples 
+            if busqueda.lower() in p["Nombre Completo"].lower()
+        ]
+        st.dataframe(tabla_filtrada, use_container_width=True)
+    else:
+        st.dataframe(tabla_cumples, use_container_width=True)
 
 # ==========================================
-# 6. BOTÓN REGISTRO DE AUSENTES
+# 7. BOTÓN REGISTRO DE AUSENTES (EN TIEMPO REAL)
 # ==========================================
 elif st.session_state["vista_actual"] == "registro_ausentes":
     if st.button("⬅️ Volver al Menú Principal"):
@@ -435,18 +471,18 @@ elif st.session_state["vista_actual"] == "registro_ausentes":
 
     st.subheader("📋 Registro de Novedades (Ausentes)")
 
-    ausencias_con_motivo = [
-        {"Nombre": v["nombre"], "Motivo / Novedad": v.get("novedad", "Sin registrar")}
+    ausencias = [
+        {"Nombre": v["nombre"], "Causa / Novedad": v.get("novedad") if v.get("novedad") else "Sin especificar"}
         for v in personas_db.values() if not v.get("presente", False)
     ]
     
-    if ausencias_con_motivo:
-        st.dataframe(ausencias_con_motivo, use_container_width=True)
+    if ausencias:
+        st.dataframe(ausencias, use_container_width=True)
     else:
         st.success("¡Personal completo! No hay ausentes registrados.")
 
 # ==========================================
-# 7. BOTÓN REINICIAR (TODOS AUSENTES)
+# 8. BOTÓN REINICIAR (TODOS AUSENTES)
 # ==========================================
 elif st.session_state["vista_actual"] == "reiniciar":
     if st.button("⬅️ Volver al Menú Principal"):
