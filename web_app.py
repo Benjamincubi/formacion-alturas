@@ -1,6 +1,6 @@
 import streamlit as st
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 from streamlit_autorefresh import st_autorefresh
 
 # Configuración de página
@@ -90,6 +90,45 @@ CRONOGRAMA_ENCARGADOS = [
     {"fecha": "20/07/2027", "encargada": "OP Daiana Elizabeth MERINO", "encargado": "OP Claudio NUÑEZ"}
 ]
 
+LISTA_CUMPLEANOS = [
+    {"nombre": "Diego Nicolas ACUÑA", "fecha_str": "Sin registrar", "dia": None, "mes": None},
+    {"nombre": "Luciana Belen AGUERO", "fecha_str": "04 de junio", "dia": 4, "mes": 6},
+    {"nombre": "Florencia Jazmin ANDRADE", "fecha_str": "12 de mayo", "dia": 12, "mes": 5},
+    {"nombre": "Ariel Joaquin ARIAS UCEDO", "fecha_str": "Sin registrar", "dia": None, "mes": None},
+    {"nombre": "Karen Ivonne BRIZUELA", "fecha_str": "25 de mayo", "dia": 25, "mes": 5},
+    {"nombre": "Julieta Anabella BRUNEL", "fecha_str": "30 de junio", "dia": 30, "mes": 6},
+    {"nombre": "Tomas CAPELLA", "fecha_str": "01 de marzo", "dia": 1, "mes": 3},
+    {"nombre": "Santiago CASSOL", "fecha_str": "12 de diciembre", "dia": 12, "mes": 12},
+    {"nombre": "Benjamin David CUBI", "fecha_str": "17 de abril", "dia": 17, "mes": 4},
+    {"nombre": "Maria DIAZ VARSI", "fecha_str": "27 de junio", "dia": 27, "mes": 6},
+    {"nombre": "Maria Celeste ESCALANTE", "fecha_str": "Sin registrar", "dia": None, "mes": None},
+    {"nombre": "Rodolfo Octavio FERNANDEZ", "fecha_str": "05 de septiembre", "dia": 5, "mes": 9},
+    {"nombre": "Ruben Alfredo FERNANDEZ", "fecha_str": "06 de diciembre", "dia": 6, "mes": 12},
+    {"nombre": "Federico Hernan FLORES", "fecha_str": "Sin registrar", "dia": None, "mes": None},
+    {"nombre": "Lorena Natividad GIMENEZ BAUTISTA", "fecha_str": "29 de febrero", "dia": 29, "mes": 2},
+    {"nombre": "Agustina Gisele GONZALEZ", "fecha_str": "28 de mayo", "dia": 28, "mes": 5},
+    {"nombre": "Exequiel IGLESIAS", "fecha_str": "22 de octubre", "dia": 22, "mes": 10},
+    {"nombre": "Federico Andres LOPEZ", "fecha_str": "18 de junio", "dia": 18, "mes": 6},
+    {"nombre": "Melina Gisel LUFT", "fecha_str": "03 de septiembre", "dia": 3, "mes": 9},
+    {"nombre": "Ivana Nazarena MARS", "fecha_str": "23 de abril", "dia": 23, "mes": 4},
+    {"nombre": "Maria Isabel MEDINA", "fecha_str": "12 de junio", "dia": 12, "mes": 6},
+    {"nombre": "Carolina Abigail MELI", "fecha_str": "20 de agosto", "dia": 20, "mes": 8},
+    {"nombre": "Daiana Elizabeth MERINO", "fecha_str": "20 de septiembre", "dia": 20, "mes": 9},
+    {"nombre": "Martina Belen MICHALUK", "fecha_str": "Sin registrar", "dia": None, "mes": None},
+    {"nombre": "Rocio NEIRA", "fecha_str": "10 de noviembre", "dia": 10, "mes": 11},
+    {"nombre": "Claudio Hernan NUÑEZ", "fecha_str": "04 de enero", "dia": 4, "mes": 1},
+    {"nombre": "Maria Pia ORIBE", "fecha_str": "18 de octubre", "dia": 18, "mes": 10},
+    {"nombre": "Veronica Ayelen OTERO", "fecha_str": "18 de abril", "dia": 18, "mes": 4},
+    {"nombre": "Jorge Santiago Ruben PELOSO", "fecha_str": "31 de enero", "dia": 31, "mes": 1},
+    {"nombre": "Paola Margarita PEREIRA", "fecha_str": "29 de marzo", "dia": 29, "mes": 3},
+    {"nombre": "Micaela Agustina PEREYRA HERRERA", "fecha_str": "14 de diciembre", "dia": 14, "mes": 12},
+    {"nombre": "Agñel Soledad RAMOS", "fecha_str": "29 de abril", "dia": 29, "mes": 4},
+    {"nombre": "Paula Vanesa SANCHEZ", "fecha_str": "12 de octubre", "dia": 12, "mes": 10},
+    {"nombre": "Maria Belen SIGNORIO", "fecha_str": "31 de octubre", "dia": 31, "mes": 10},
+    {"nombre": "Lucia Maria Fernanda SOTO BABICKI", "fecha_str": "22 de julio", "dia": 22, "mes": 7},
+    {"nombre": "Emilia Alejandra TOLEDO", "fecha_str": "13 de febrero", "dia": 13, "mes": 2}
+]
+
 def obtener_datos():
     try:
         res = requests.get(FIREBASE_URL, timeout=3)
@@ -109,74 +148,142 @@ def obtener_encargados_actuales():
             return item
     return CRONOGRAMA_ENCARGADOS[-1]
 
+def verificar_cumpleanos_proximos():
+    hoy = datetime.now().date()
+    inicio_semana = hoy - timedelta(days=hoy.weekday())
+    fin_semana_entrante = inicio_semana + timedelta(days=13)
+    
+    cumpleaneros = []
+    for persona in LISTA_CUMPLEANOS:
+        if persona["dia"] and persona["mes"]:
+            try:
+                cumple_ano_actual = datetime(hoy.year, persona["mes"], persona["dia"]).date()
+            except ValueError:
+                # Caso para 29 de febrero en año no bisiesto
+                cumple_ano_actual = datetime(hoy.year, 3, 1).date()
+                
+            if inicio_semana <= cumple_ano_actual <= fin_semana_entrante:
+                cumpleaneros.append((persona["nombre"], persona["fecha_str"]))
+    return cumpleaneros
+
 personas_db = obtener_datos()
 
+# Estado de navegación en sesión
+if "vista_actual" not in st.session_state:
+    st.session_state["vista_actual"] = "menu"
+
+def ir_a(vista):
+    st.session_state["vista_actual"] = vista
+
+# --- TITULO PRINCIPAL ---
 st.title("🔴 Gestor de Alturas - Formación")
 
-# --- RESUMEN DE PRESENTES Y AUSENTES ---
+# --- ALERTA DE CUMPLEAÑOS SEMANA ACTUAL Y ENTRANTE ---
+cumples_proximos = verificar_cumpleanos_proximos()
+if cumples_proximos:
+    detalles = ", ".join([f"**{nombre}** ({fecha})" for nombre, fecha in cumples_proximos])
+    st.info(f"🎉 **¡Atención! Cumpleaños en la semana actual/entrante:** {detalles}")
+
+# --- RESUMEN SUPERIOR ---
 total_efectivos = len(personas_db)
 presentes_list = [v for v in personas_db.values() if v.get("presente", False)]
 ausentes_list = [v for v in personas_db.values() if not v.get("presente", False)]
 
-cant_presentes = len(presentes_list)
-cant_ausentes = len(ausentes_list)
-
 col_m1, col_m2, col_m3 = st.columns(3)
 col_m1.metric("Total Personal", total_efectivos)
-col_m2.metric("Presentes", cant_presentes)
-col_m3.metric("Ausentes", cant_ausentes)
+col_m2.metric("Presentes", len(presentes_list))
+col_m3.metric("Ausentes", len(ausentes_list))
 
 st.divider()
 
-# --- SECCIÓN: ENCARGADOS DE TURNO ---
-encargados_hoy = obtener_encargados_actuales()
-
-st.subheader("⭐ Encargados de Turno / Formación")
-
-st.markdown(
-    f"""
-    <div style="
-        background-color: #1E88E5;
-        color: white;
-        padding: 15px;
-        border-radius: 10px;
-        text-align: center;
-        font-size: 16px;
-        font-weight: bold;
-        box-shadow: 2px 2px 8px rgba(0,0,0,0.3);
-        margin-bottom: 15px;
-    ">
-        📅 Martes: {encargados_hoy['fecha']}<br>
-        👩‍✈️ Encargada: <span style="color: #FFEB3B;">{encargados_hoy['encargada']}</span><br>
-        👨‍✈️ Encargado: <span style="color: #FFEB3B;">{encargados_hoy['encargado']}</span>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
-with st.expander("📅 Ver Cronograma Completo de Encargados"):
-    st.dataframe(CRONOGRAMA_ENCARGADOS, use_container_width=True)
-
-st.divider()
-
-# --- PANEL DE CONTROL INDIVIDUAL ---
-st.subheader("👤 Mi Estado")
-nombres = [v["nombre"] for k, v in sorted(personas_db.items())] if personas_db else []
-mi_nombre = st.selectbox("Seleccioná tu Nombre:", ["-- Seleccionar --"] + nombres)
-
-if mi_nombre != "-- Seleccionar --":
-    pid = [k for k, v in personas_db.items() if v["nombre"] == mi_nombre][0]
-    pdata = personas_db[pid]
-
-    col_a, col_b = st.columns(2)
-    with col_a:
-        es_presente = st.checkbox("Dar Presente", value=pdata.get("presente", False))
-        if es_presente != pdata.get("presente", False):
-            url_node = FIREBASE_URL.replace(".json", f"/{pid}.json")
-            requests.patch(url_node, json={"presente": es_presente})
+# ==========================================
+# 📌 MENÚ PRINCIPAL
+# ==========================================
+if st.session_state["vista_actual"] == "menu":
+    st.subheader("📋 Menú Principal")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("⭐ Encargados de Turno", use_container_width=True):
+            ir_a("encargados")
+            st.rerun()
+            
+        if st.button("📏 Modificar Altura", use_container_width=True):
+            ir_a("modificar_altura")
+            st.rerun()
+            
+        if st.button("✅ Dar Presente / ❌ Dar Ausente", use_container_width=True):
+            ir_a("presente_ausente")
             st.rerun()
 
-    with col_b:
+        if st.button("📐 Formación en Vivo", use_container_width=True):
+            ir_a("formacion")
+            st.rerun()
+
+    with col2:
+        if st.button("🎂 Cumpleaños", use_container_width=True):
+            ir_a("cumpleanos")
+            st.rerun()
+
+        if st.button("📋 Registro de Ausentes", use_container_width=True):
+            ir_a("registro_ausentes")
+            st.rerun()
+
+        if st.button("⚠️ Reiniciar: Marcar a TODOS como Ausentes", use_container_width=True):
+            ir_a("reiniciar")
+            st.rerun()
+
+# ==========================================
+# 1. BOTÓN ENCARGADOS
+# ==========================================
+elif st.session_state["vista_actual"] == "encargados":
+    if st.button("⬅️ Volver al Menú Principal"):
+        ir_a("menu")
+        st.rerun()
+        
+    st.subheader("⭐ Encargados de Turno / Formación")
+    encargados_hoy = obtener_encargados_actuales()
+
+    st.markdown(
+        f"""
+        <div style="
+            background-color: #1E88E5;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+            margin-bottom: 15px;
+        ">
+            📅 Martes: {encargados_hoy['fecha']}<br>
+            👩‍✈️ Encargada: <span style="color: #FFEB3B;">{encargados_hoy['encargada']}</span><br>
+            👨‍✈️ Encargado: <span style="color: #FFEB3B;">{encargados_hoy['encargado']}</span>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    with st.expander("📅 Ver Cronograma Completo de Encargados"):
+        st.dataframe(CRONOGRAMA_ENCARGADOS, use_container_width=True)
+
+# ==========================================
+# 2. BOTÓN MODIFICAR ALTURA
+# ==========================================
+elif st.session_state["vista_actual"] == "modificar_altura":
+    if st.button("⬅️ Volver al Menú Principal"):
+        ir_a("menu")
+        st.rerun()
+
+    st.subheader("📏 Modificar Altura")
+    nombres = [v["nombre"] for k, v in sorted(personas_db.items())] if personas_db else []
+    mi_nombre = st.selectbox("Seleccioná tu Nombre:", ["-- Seleccionar --"] + nombres)
+
+    if mi_nombre != "-- Seleccionar --":
+        pid = [k for k, v in personas_db.items() if v["nombre"] == mi_nombre][0]
+        pdata = personas_db[pid]
+
         nueva_alt = st.number_input("Mi Altura (m):", min_value=1.0, max_value=2.5, value=float(pdata["altura"]), step=0.01)
         if st.button("Guardar Altura"):
             url_node = FIREBASE_URL.replace(".json", f"/{pid}.json")
@@ -184,139 +291,177 @@ if mi_nombre != "-- Seleccionar --":
             st.success("Altura guardada correctamente en la base de datos.")
             st.rerun()
 
-st.divider()
+# ==========================================
+# 3. BOTÓN PRESENTE / AUSENTE
+# ==========================================
+elif st.session_state["vista_actual"] == "presente_ausente":
+    if st.button("⬅️ Volver al Menú Principal"):
+        ir_a("menu")
+        st.rerun()
 
-# --- VISTA EN GRILLA ---
-st.subheader("📐 Formación en Vivo")
-frente = st.slider("Frente (Columnas):", min_value=1, max_value=12, value=6)
+    st.subheader("👤 Marcar Estado Individual (Presente / Ausente)")
+    nombres = [v["nombre"] for k, v in sorted(personas_db.items())] if personas_db else []
+    mi_nombre = st.selectbox("Seleccioná tu Nombre:", ["-- Seleccionar --"] + nombres)
 
-presentes = [
-    (pid, p["nombre"], p["altura"])
-    for pid, p in personas_db.items()
-    if p.get("presente", False)
-]
-
-presentes.sort(key=lambda x: x[2], reverse=True)
-
-if not presentes:
-    st.info("No hay personas marcadas como presentes aún.")
-else:
-    num_columnas = frente
-    total_p = len(presentes)
-    num_filas = (total_p + num_columnas - 1) // num_columnas
-
-    grilla_container = st.container()
-
-    with grilla_container:
-        for fila in range(num_filas):
-            cols = st.columns(num_columnas)
-            for col_index in range(num_columnas):
-                idx = fila * num_columnas + col_index
-                col_invertida = (num_columnas - 1) - col_index
-                
-                if idx < total_p:
-                    posicion = idx + 1
-                    _, nombre, altura = presentes[idx]
-                    nombre_limpio = nombre.replace("OP ", "")
-                    
-                    with cols[col_invertida]:
-                        st.markdown(
-                            f"""
-                            <div style="
-                                background-color: #E53935;
-                                color: white;
-                                border-radius: 50%;
-                                width: 85px;
-                                height: 85px;
-                                display: flex;
-                                flex-direction: column;
-                                align-items: center;
-                                justify-content: center;
-                                text-align: center;
-                                font-size: 11px;
-                                font-weight: bold;
-                                margin: 5px auto;
-                                box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
-                            ">
-                                <div>({posicion})</div>
-                                <div>{nombre_limpio}</div>
-                                <div>{altura:.2f}m</div>
-                            </div>
-                            """,
-                            unsafe_allow_html=True
-                        )
-
-    # --- CONSULTA DE POSICIÓN EN LA FORMACIÓN ---
-    st.markdown("#### 🔍 Consultar mi Ubicación Exacta")
-    nombres_presentes = [p[1] for p in presentes]
-    nombre_buscado = st.selectbox("Seleccioná tu nombre para ver tu ubicación:", ["-- Seleccionar --"] + nombres_presentes, key="busqueda_ubicacion")
-
-    if nombre_buscado != "-- Seleccionar --":
-        # Hallar índice dentro de los presentes (ordenados de mayor a menor)
-        idx_persona = next(i for i, p in enumerate(presentes) if p[1] == nombre_buscado)
+    if mi_nombre != "-- Seleccionar --":
+        pid = [k for k, v in personas_db.items() if v["nombre"] == mi_nombre][0]
+        pdata = personas_db[pid]
         
-        numero_orden = idx_persona + 1
-        num_fila = (idx_persona // num_columnas) + 1
-        # Conteo desde la derecha (1 a la derecha, N a la izquierda)
-        num_columna_der = (idx_persona % num_columnas) + 1
+        estado_actual = "Presente" if pdata.get("presente", False) else "Ausente"
+        st.write(f"Estado actual: **{estado_actual}**")
+
+        col_pres, col_aus = st.columns(2)
         
-        st.info(
-            f"📍 **{nombre_buscado}**:\n\n"
-            f"- **Número de Orden:** ({numero_orden})\n"
-            f"- **Fila:** {num_fila} (contando desde adelante)\n"
-            f"- **Columna:** {num_columna_der} (contando desde la derecha)"
-        )
-
-st.divider()
-
-# --- NOVEDADES / JUSTIFICACIÓN DE AUSENTES ---
-st.subheader("📋 Registro de Novedades (Ausentes)")
-
-nombres_ausentes = [v["nombre"] for k, v in sorted(personas_db.items()) if not v.get("presente", False)]
-
-if nombres_ausentes:
-    col_aus1, col_aus2 = st.columns([1, 2])
-    with col_aus1:
-        ausente_sel = st.selectbox("Seleccionar Ausente:", ["-- Seleccionar --"] + nombres_ausentes)
-    
-    if ausente_sel != "-- Seleccionar --":
-        pid_aus = [k for k, v in personas_db.items() if v["nombre"] == ausente_sel][0]
-        nov_actual = personas_db[pid_aus].get("novedad", "")
-        
-        with col_aus2:
-            nueva_nov = st.text_input("Motivo de ausencia / Novedad:", value=nov_actual, placeholder="Ej: Licencia médica, Servicio, Guardia...")
-            if st.button("Guardar Novedad"):
-                url_node = FIREBASE_URL.replace(".json", f"/{pid_aus}.json")
-                requests.patch(url_node, json={"novedad": nueva_nov})
-                st.success("Novedad guardada.")
+        with col_pres:
+            if st.button("✅ Dar Presente", use_container_width=True, type="primary"):
+                url_node = FIREBASE_URL.replace(".json", f"/{pid}.json")
+                requests.patch(url_node, json={"presente": True, "novedad": ""})
+                st.success("Marcado como PRESENTE.")
                 st.rerun()
 
-    st.markdown("**Detalle de ausencias registradas:**")
+        with col_aus:
+            st.markdown("#### ❌ Marcar Ausente")
+            motivo = st.text_input("Motivo de ausencia / Novedad:", value=pdata.get("novedad", ""), placeholder="Ej: Licencia médica, Servicio...")
+            if st.button("Confirmar Ausencia", use_container_width=True):
+                url_node = FIREBASE_URL.replace(".json", f"/{pid}.json")
+                requests.patch(url_node, json={"presente": False, "novedad": motivo})
+                st.warning("Marcado como AUSENTE.")
+                st.rerun()
+
+# ==========================================
+# 4. BOTÓN FORMACIÓN EN VIVO
+# ==========================================
+elif st.session_state["vista_actual"] == "formacion":
+    if st.button("⬅️ Volver al Menú Principal"):
+        ir_a("menu")
+        st.rerun()
+
+    st.subheader("📐 Formación en Vivo")
+    frente = st.slider("Frente (Columnas):", min_value=1, max_value=12, value=6)
+
+    presentes = [
+        (pid, p["nombre"], p["altura"])
+        for pid, p in personas_db.items()
+        if p.get("presente", False)
+    ]
+
+    presentes.sort(key=lambda x: x[2], reverse=True)
+
+    if not presentes:
+        st.info("No hay personas marcadas como presentes aún.")
+    else:
+        num_columnas = frente
+        total_p = len(presentes)
+        num_filas = (total_p + num_columnas - 1) // num_columnas
+
+        grilla_container = st.container()
+
+        with grilla_container:
+            for fila in range(num_filas):
+                cols = st.columns(num_columnas)
+                for col_index in range(num_columnas):
+                    idx = fila * num_columnas + col_index
+                    col_invertida = (num_columnas - 1) - col_index
+                    
+                    if idx < total_p:
+                        posicion = idx + 1
+                        _, nombre, altura = presentes[idx]
+                        nombre_limpio = nombre.replace("OP ", "")
+                        
+                        with cols[col_invertida]:
+                            st.markdown(
+                                f"""
+                                <div style="
+                                    background-color: #E53935;
+                                    color: white;
+                                    border-radius: 50%;
+                                    width: 85px;
+                                    height: 85px;
+                                    display: flex;
+                                    flex-direction: column;
+                                    align-items: center;
+                                    justify-content: center;
+                                    text-align: center;
+                                    font-size: 11px;
+                                    font-weight: bold;
+                                    margin: 5px auto;
+                                    box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+                                ">
+                                    <div>({posicion})</div>
+                                    <div>{nombre_limpio}</div>
+                                    <div>{altura:.2f}m</div>
+                                </div>
+                                """,
+                                unsafe_allow_html=True
+                            )
+
+        # --- CONSULTA DE POSICIÓN ---
+        st.divider()
+        st.markdown("#### 🔍 Consultar mi Ubicación Exacta")
+        nombres_presentes = [p[1] for p in presentes]
+        nombre_buscado = st.selectbox("Seleccioná tu nombre para ver tu ubicación:", ["-- Seleccionar --"] + nombres_presentes)
+
+        if nombre_buscado != "-- Seleccionar --":
+            idx_persona = next(i for i, p in enumerate(presentes) if p[1] == nombre_buscado)
+            numero_orden = idx_persona + 1
+            num_fila = (idx_persona // num_columnas) + 1
+            num_columna_der = (idx_persona % num_columnas) + 1
+            
+            st.info(
+                f"📍 **{nombre_buscado}**:\n\n"
+                f"- **Número de Orden:** ({numero_orden})\n"
+                f"- **Fila:** {num_fila} (contando desde adelante)\n"
+                f"- **Columna:** {num_columna_der} (contando desde la derecha)"
+            )
+
+# ==========================================
+# 5. BOTÓN CUMPLEAÑOS
+# ==========================================
+elif st.session_state["vista_actual"] == "cumpleanos":
+    if st.button("⬅️ Volver al Menú Principal"):
+        ir_a("menu")
+        st.rerun()
+
+    st.subheader("🎂 Listado de Cumpleaños")
+    st.dataframe(LISTA_CUMPLEANOS, use_container_width=True)
+
+# ==========================================
+# 6. BOTÓN REGISTRO DE AUSENTES
+# ==========================================
+elif st.session_state["vista_actual"] == "registro_ausentes":
+    if st.button("⬅️ Volver al Menú Principal"):
+        ir_a("menu")
+        st.rerun()
+
+    st.subheader("📋 Registro de Novedades (Ausentes)")
+
     ausencias_con_motivo = [
         {"Nombre": v["nombre"], "Motivo / Novedad": v.get("novedad", "Sin registrar")}
         for v in personas_db.values() if not v.get("presente", False)
     ]
-    st.dataframe(ausencias_con_motivo, use_container_width=True)
-else:
-    st.success("¡Personal completo! No hay ausentes.")
-
-st.divider()
-
-# --- ACCIONES GLOBALES PROTEGIDAS ---
-with st.expander("⚙️ Acciones Globales (Reinicio de Formación / Carga Masiva)"):
-    st.warning("⚠️ Cuidado: Estas opciones modifican el estado de TODO el personal.")
-    col_btn1, col_btn2 = st.columns(2)
     
-    with col_btn1:
-        if st.button("✅ Marcar a TODOS como Presentes"):
-            datos_actualizados = {k: {**v, "presente": True} for k, v in personas_db.items()}
-            requests.put(FIREBASE_URL, json=datos_actualizados)
-            st.success("Se marcaron todos como presentes.")
-            st.rerun()
-            
-    with col_btn2:
-        if st.button("❌ REINICIAR: Marcar a TODOS como Ausentes"):
+    if ausencias_con_motivo:
+        st.dataframe(ausencias_con_motivo, use_container_width=True)
+    else:
+        st.success("¡Personal completo! No hay ausentes registrados.")
+
+# ==========================================
+# 7. BOTÓN REINICIAR (TODOS AUSENTES)
+# ==========================================
+elif st.session_state["vista_actual"] == "reiniciar":
+    if st.button("⬅️ Volver al Menú Principal"):
+        ir_a("menu")
+        st.rerun()
+
+    st.subheader("⚠️ Reiniciar Formación")
+    st.warning("⚠️ **Atención:** Esta acción marcará a TODO el personal como AUSENTE y borrará las novedades guardadas.")
+    
+    confirmar = st.checkbox("Entiendo la acción y deseo continuar")
+    
+    if confirmar:
+        if st.button("❌ REINICIAR: Marcar a TODOS como Ausentes", type="primary"):
             datos_actualizados = {k: {**v, "presente": False, "novedad": ""} for k, v in personas_db.items()}
             requests.put(FIREBASE_URL, json=datos_actualizados)
-            st.warning("Se reinició la lista. Todos marcados como ausentes.")
+            st.success("Se reinició la formación. Todo el personal figura ausente.")
+            ir_a("menu")
             st.rerun()
