@@ -103,16 +103,11 @@ def obtener_datos():
 
 def obtener_encargados_actuales():
     hoy = datetime.now().date()
-    encargado_vigente = CRONOGRAMA_ENCARGADOS[0]
-    
     for item in CRONOGRAMA_ENCARGADOS:
         fecha_dt = datetime.strptime(item["fecha"], "%d/%m/%Y").date()
-        if fecha_dt <= hoy:
-            encargado_vigente = item
-        else:
-            break
-            
-    return encargado_vigente
+        if fecha_dt >= hoy:
+            return item
+    return CRONOGRAMA_ENCARGADOS[-1]
 
 personas_db = obtener_datos()
 
@@ -133,7 +128,7 @@ col_m3.metric("Ausentes", cant_ausentes)
 
 st.divider()
 
-# --- SECCIÓN: ENCARGADOS DE SEMANA (Ubicado por arriba de "Mi Estado") ---
+# --- SECCIÓN: ENCARGADOS DE TURNO ---
 encargados_hoy = obtener_encargados_actuales()
 
 st.subheader("⭐ Encargados de Turno / Formación")
@@ -151,7 +146,7 @@ st.markdown(
         box-shadow: 2px 2px 8px rgba(0,0,0,0.3);
         margin-bottom: 15px;
     ">
-        📅 Semana / Martes: {encargados_hoy['fecha']}<br>
+        📅 Martes: {encargados_hoy['fecha']}<br>
         👩‍✈️ Encargada: <span style="color: #FFEB3B;">{encargados_hoy['encargada']}</span><br>
         👨‍✈️ Encargado: <span style="color: #FFEB3B;">{encargados_hoy['encargado']}</span>
     </div>
@@ -185,14 +180,13 @@ if mi_nombre != "-- Seleccionar --":
         nueva_alt = st.number_input("Mi Altura (m):", min_value=1.0, max_value=2.5, value=float(pdata["altura"]), step=0.01)
         if st.button("Guardar Altura"):
             url_node = FIREBASE_URL.replace(".json", f"/{pid}.json")
-            # Actualiza tanto la base de datos como los registros en tiempo real
             requests.patch(url_node, json={"altura": nueva_alt})
             st.success("Altura guardada correctamente en la base de datos.")
             st.rerun()
 
 st.divider()
 
-# --- VISTA EN GRILLA (ORDENADA DE MAYOR A MENOR DERECHA A IZQUIERDA) ---
+# --- VISTA EN GRILLA ---
 st.subheader("📐 Formación en Vivo")
 frente = st.slider("Frente (Columnas):", min_value=1, max_value=12, value=6)
 
