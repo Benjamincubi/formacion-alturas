@@ -246,6 +246,27 @@ else:
                             unsafe_allow_html=True
                         )
 
+    # --- CONSULTA DE POSICIÓN EN LA FORMACIÓN ---
+    st.markdown("#### 🔍 Consultar mi Ubicación Exacta")
+    nombres_presentes = [p[1] for p in presentes]
+    nombre_buscado = st.selectbox("Seleccioná tu nombre para ver tu ubicación:", ["-- Seleccionar --"] + nombres_presentes, key="busqueda_ubicacion")
+
+    if nombre_buscado != "-- Seleccionar --":
+        # Hallar índice dentro de los presentes (ordenados de mayor a menor)
+        idx_persona = next(i for i, p in enumerate(presentes) if p[1] == nombre_buscado)
+        
+        numero_orden = idx_persona + 1
+        num_fila = (idx_persona // num_columnas) + 1
+        # Conteo desde la derecha (1 a la derecha, N a la izquierda)
+        num_columna_der = (idx_persona % num_columnas) + 1
+        
+        st.info(
+            f"📍 **{nombre_buscado}**:\n\n"
+            f"- **Número de Orden:** ({numero_orden})\n"
+            f"- **Fila:** {num_fila} (contando desde adelante)\n"
+            f"- **Columna:** {num_columna_der} (contando desde la derecha)"
+        )
+
 st.divider()
 
 # --- NOVEDADES / JUSTIFICACIÓN DE AUSENTES ---
