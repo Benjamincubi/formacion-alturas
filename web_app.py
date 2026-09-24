@@ -1,11 +1,12 @@
 import streamlit as st
 import requests
+from datetime import datetime
 from streamlit_autorefresh import st_autorefresh
 
 # Configuración de página
 st.set_page_config(page_title="Gestor de Alturas - Formación", layout="wide")
 
-# AUTO-RECARGA EN VIVO (Cada 3000 ms = 3 segundos) de forma limpia sin duplicar la grilla
+# Auto-recarga automática cada 3 segundos
 st_autorefresh(interval=3000, limit=None, key="formacion_autorefresh")
 
 FIREBASE_URL = "https://formacion-cupro-alfa-default-rtdb.firebaseio.com/personas.json"
@@ -49,6 +50,46 @@ DATOS_INICIALES = {
     "36": {"nombre": "OP Soto Lucia", "altura": 1.66, "presente": False, "novedad": ""}
 }
 
+CRONOGRAMA_ENCARGADOS = [
+    {"fecha": "14/07/2026", "encargada": "OP María Pia ORIBE", "encargado": "OP Claudio NUÑEZ"},
+    {"fecha": "04/08/2026", "encargada": "OP Daiana Elizabeth MERINO", "encargado": "OP Tomas CAPELLA"},
+    {"fecha": "18/08/2026", "encargada": "OP Florencia ANDRADE", "encargado": "OP Federico LÓPEZ"},
+    {"fecha": "25/08/2026", "encargada": "OP María Belén SIGNORIO", "encargado": "OP Rubén FERNÁNDEZ"},
+    {"fecha": "01/09/2026", "encargada": "OP Luciana AGÜERO", "encargado": "OP Federico FLORES"},
+    {"fecha": "08/09/2026", "encargada": "OP Micaela PEREYRA HERRERA", "encargado": "OP Diego Nicolas ACUÑA"},
+    {"fecha": "15/09/2026", "encargada": "OP Ivana Nazarena MARS", "encargado": "OP Benjamin CUBI"},
+    {"fecha": "22/09/2026", "encargada": "OP Agñel RAMOS", "encargado": "OP Octavio FERNÁNDEZ"},
+    {"fecha": "29/09/2026", "encargada": "OP María DIAZ VARSI", "encargado": "OP Santiago PELOSO"},
+    {"fecha": "06/10/2026", "encargada": "OP Martina Belen MICHALUK", "encargado": "OP Exequiel IGLESIAS"},
+    {"fecha": "13/10/2026", "encargada": "OP Rocio NEIRA", "encargado": "OP Claudio NUÑEZ"},
+    {"fecha": "20/10/2026", "encargada": "OP Maria Celeste ESCALANTE", "encargado": "OP Tomas CAPELLA"},
+    {"fecha": "27/10/2026", "encargada": "OP Paula Vanesa SANCHEZ", "encargado": "OP Federico LÓPEZ"},
+    {"fecha": "03/11/2026", "encargada": "OP Melina Gisel LUFT", "encargado": "OP Rubén FERNÁNDEZ"},
+    {"fecha": "10/11/2026", "encargada": "OP Lorena N. GIMENEZ BAUTISTA", "encargado": "OP Federico FLORES"},
+    {"fecha": "17/11/2026", "encargada": "OP Emilia Alejandra TOLEDO", "encargado": "OP Diego Nicolas ACUÑA"},
+    {"fecha": "24/11/2026", "encargada": "OP Carolina A. MELI", "encargado": "OP Benjamin CUBI"},
+    {"fecha": "02/03/2027", "encargada": "OP Agustina Gisele GONZALEZ", "encargado": "OP Octavio FERNÁNDEZ"},
+    {"fecha": "09/03/2027", "encargada": "OP Paola Margarita PEREIRA", "encargado": "OP Ucedo Ariel ARIAS"},
+    {"fecha": "16/03/2027", "encargada": "OP Verónica Ayelén OTERO", "encargado": "OP Santiago PELOSO"},
+    {"fecha": "23/03/2027", "encargada": "OP Karen BRIZUELA", "encargado": "OP Diego Nicolas ACUÑA"},
+    {"fecha": "30/03/2027", "encargada": "OP Maria Isabel MEDINA", "encargado": "OP Santiago CASSOL"},
+    {"fecha": "06/04/2027", "encargada": "OP Lucia SOTO", "encargado": "OP Ucedo Ariel ARIAS"},
+    {"fecha": "13/04/2027", "encargada": "OP María Pia ORIBE", "encargado": "OP Claudio NUÑEZ"},
+    {"fecha": "20/04/2027", "encargada": "OP Julieta Brunel", "encargado": "OP Tomas CAPELLA"},
+    {"fecha": "27/04/2027", "encargada": "OP Daiana Elizabeth MERINO", "encargado": "OP Santiago CASSOL"},
+    {"fecha": "04/05/2027", "encargada": "OP Florencia ANDRADE", "encargado": "OP Federico LÓPEZ"},
+    {"fecha": "11/05/2027", "encargada": "OP María Belén SIGNORIO", "encargado": "OP Rubén FERNÁNDEZ"},
+    {"fecha": "18/05/2027", "encargada": "OP Luciana AGÜERO", "encargado": "OP Federico FLORES"},
+    {"fecha": "01/06/2027", "encargada": "OP Micaela PEREYRA HERRERA", "encargado": "OP Exequiel IGLESIAS"},
+    {"fecha": "08/06/2027", "encargada": "OP Ivana Nazarena MARS", "encargado": "OP Benjamin CUBI"},
+    {"fecha": "15/06/2027", "encargada": "OP Agñel RAMOS", "encargado": "OP Octavio FERNÁNDEZ"},
+    {"fecha": "22/06/2027", "encargada": "OP María DIAZ VARSI", "encargado": "OP Santiago PELOSO"},
+    {"fecha": "29/06/2027", "encargada": "OP Martina Belen MICHALUK", "encargado": "OP Exequiel IGLESIAS"},
+    {"fecha": "06/07/2027", "encargada": "OP Rocio NEIRA", "encargado": "OP Santiago CASSOL"},
+    {"fecha": "13/07/2027", "encargada": "OP María Pia ORIBE", "encargado": "OP Ucedo Ariel ARIAS"},
+    {"fecha": "20/07/2027", "encargada": "OP Daiana Elizabeth MERINO", "encargado": "OP Claudio NUÑEZ"}
+]
+
 def obtener_datos():
     try:
         res = requests.get(FIREBASE_URL, timeout=3)
@@ -59,6 +100,19 @@ def obtener_datos():
         return data
     except Exception:
         return {}
+
+def obtener_encargados_actuales():
+    hoy = datetime.now().date()
+    encargado_vigente = CRONOGRAMA_ENCARGADOS[0]
+    
+    for item in CRONOGRAMA_ENCARGADOS:
+        fecha_dt = datetime.strptime(item["fecha"], "%d/%m/%Y").date()
+        if fecha_dt <= hoy:
+            encargado_vigente = item
+        else:
+            break
+            
+    return encargado_vigente
 
 personas_db = obtener_datos()
 
@@ -76,6 +130,37 @@ col_m1, col_m2, col_m3 = st.columns(3)
 col_m1.metric("Total Personal", total_efectivos)
 col_m2.metric("Presentes", cant_presentes)
 col_m3.metric("Ausentes", cant_ausentes)
+
+st.divider()
+
+# --- SECCIÓN: ENCARGADOS DE SEMANA (Ubicado por arriba de "Mi Estado") ---
+encargados_hoy = obtener_encargados_actuales()
+
+st.subheader("⭐ Encargados de Turno / Formación")
+
+st.markdown(
+    f"""
+    <div style="
+        background-color: #1E88E5;
+        color: white;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        font-size: 16px;
+        font-weight: bold;
+        box-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+        margin-bottom: 15px;
+    ">
+        📅 Semana / Martes: {encargados_hoy['fecha']}<br>
+        👩‍✈️ Encargada: <span style="color: #FFEB3B;">{encargados_hoy['encargada']}</span><br>
+        👨‍✈️ Encargado: <span style="color: #FFEB3B;">{encargados_hoy['encargado']}</span>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+with st.expander("📅 Ver Cronograma Completo de Encargados"):
+    st.dataframe(CRONOGRAMA_ENCARGADOS, use_container_width=True)
 
 st.divider()
 
@@ -100,8 +185,9 @@ if mi_nombre != "-- Seleccionar --":
         nueva_alt = st.number_input("Mi Altura (m):", min_value=1.0, max_value=2.5, value=float(pdata["altura"]), step=0.01)
         if st.button("Guardar Altura"):
             url_node = FIREBASE_URL.replace(".json", f"/{pid}.json")
+            # Actualiza tanto la base de datos como los registros en tiempo real
             requests.patch(url_node, json={"altura": nueva_alt})
-            st.success("Altura guardada.")
+            st.success("Altura guardada correctamente en la base de datos.")
             st.rerun()
 
 st.divider()
@@ -116,7 +202,6 @@ presentes = [
     if p.get("presente", False)
 ]
 
-# Orden descendente por altura
 presentes.sort(key=lambda x: x[2], reverse=True)
 
 if not presentes:
@@ -126,7 +211,6 @@ else:
     total_p = len(presentes)
     num_filas = (total_p + num_columnas - 1) // num_columnas
 
-    # Contenedor limpio para evitar elementos en caché
     grilla_container = st.container()
 
     with grilla_container:
