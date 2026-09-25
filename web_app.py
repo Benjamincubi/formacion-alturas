@@ -11,6 +11,7 @@ st_autorefresh(interval=3000, limit=None, key="formacion_autorefresh")
 
 FIREBASE_URL = "https://formacion-cupro-alfa-default-rtdb.firebaseio.com/personas.json"
 HISTORIAL_URL = "https://formacion-cupro-alfa-default-rtdb.firebaseio.com/historial_cambios.json"
+NOVEDADES_URL = "https://formacion-cupro-alfa-default-rtdb.firebaseio.com/novedades_generales.json"
 
 # Contraseña para acceder a la sección de Actualizaciones
 ADMIN_PASSWORD = "1234"
@@ -141,7 +142,6 @@ MESES_NOMBRES = {
 }
 
 def registrar_cambio_altura(detalle):
-    """Registra únicamente modificaciones de altura en el historial de Firebase"""
     try:
         ahora = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         nuevo_registro = {"fecha_hora": ahora, "detalle": detalle}
@@ -160,6 +160,36 @@ def obtener_historial():
         return []
     except Exception:
         return []
+
+def publicar_novedad_general(autor, titulo, mensaje):
+    try:
+        ahora = datetime.now().strftime("%d/%m/%Y %H:%M")
+        registro = {
+            "fecha_hora": ahora,
+            "autor": autor,
+            "titulo": titulo,
+            "mensaje": mensaje
+        }
+        requests.post(NOVEDADES_URL, json=registro, timeout=3)
+    except Exception:
+        pass
+
+def obtener_novedades_generales():
+    try:
+        res = requests.get(NOVEDADES_URL, timeout=3)
+        data = res.json()
+        if data:
+            return data
+        return {}
+    except Exception:
+        return {}
+
+def eliminar_novedad_general(key_node):
+    try:
+        url_node = NOVEDADES_URL.replace(".json", f"/{key_node}.json")
+        requests.delete(url_node, timeout=3)
+    except Exception:
+        pass
 
 def obtener_datos():
     try:
@@ -247,15 +277,19 @@ if st.session_state["vista_actual"] == "menu":
             ir_a("dar_ausente")
             st.rerun()
 
+        if st.button("📢 Novedades y Avisos", use_container_width=True):
+            ir_a("novedades_generales")
+            st.rerun()
+
         if st.button("📏 Modificar Altura", use_container_width=True):
             ir_a("modificar_altura")
             st.rerun()
 
+    with col2:
         if st.button("📐 Formación en Vivo", use_container_width=True):
             ir_a("formacion")
             st.rerun()
 
-    with col2:
         if st.button("🎂 Cumpleaños", use_container_width=True):
             ir_a("cumpleanos")
             st.rerun()
@@ -361,7 +395,57 @@ elif st.session_state["vista_actual"] == "dar_ausente":
             st.rerun()
 
 # ==========================================
-# 4. BOTÓN MODIFICAR ALTURA
+# 4. BOTÓN NOVEDADES Y AVISOS (NUEVO)
+# ==========================================
+elif st.session_state["vista_actual"] == "novedades_generales":
+    if st.button("⬅️ Volver al Menú Principal"):
+        ir_a("menu")
+        st.rerun()
+
+    st.subheader("📢 Novedades y Avisos Generales")
+
+    with st.expander("✏️ Publicar una nueva Novedad / Aviso", expanded=True):
+        nombres = [v["nombre"] for k, v in sorted(personas_db.items())] if personas_db else []
+        autor_nov = st.selectbox("Publicado por:", ["-- Seleccionar --"] + nombres, key="autor_nov")
+        titulo_nov = st.text_input("Asunto / Título:", placeholder="Ej: Examen del martes / Apuntes disponiles / Guardia...")
+        msg_nov = st.text_area("Detalle del aviso:", placeholder="Escribí el contenido de la novedad aquí...")
+
+        if st.button("Publish Novedad / Aviso", type="primary"):
+            if autor_nov != "-- Seleccionar --" and titulo_nov.strip() and msg_nov.strip():
+                publicar_novedad_general(autor_nov, titulo_nov, msg_nov)
+                st.success("¡Novedad publicada correctamente!")
+                st.rerun()
+            else:
+                st.error("Por favor completa tu nombre, asunto y detalle antes de publicar.")
+
+    st.divider()
+    st.markdown("### 📌 Avisos Publicados:")
+    dict_novs = obtener_novedades_generales()
+
+    if dict_novs:
+        # Ordenar más recientes primero
+        items_novs = list(dict_novs.items())
+        items_novs.reverse()
+
+        for key_id, info in items_novs:
+            with st.container():
+                st.markdown(f"#### 🔹 {info.get('titulo', 'Sin Título')}")
+                st.write(f"{info.get('mensaje', '')}")
+                st.caption(f"👤 **Publicado por:** {info.get('autor', 'Anónimo')} | 🕒 **Fecha:** {info.get('fecha_hora', '')}")
+                
+                # Opción de borrado individual por el autor/usuario
+                col_b1, col_b2 = st.columns([1, 3])
+                with col_b1:
+                    if st.button("🗑️ Borrar mi aviso", key=f"del_{key_id}"):
+                        eliminar_novedad_general(key_id)
+                        st.success("Aviso eliminado.")
+                        st.rerun()
+                st.divider()
+    else:
+        st.info("No hay avisos o novedades publicados por el momento.")
+
+# ==========================================
+# 5. BOTÓN MODIFICAR ALTURA
 # ==========================================
 elif st.session_state["vista_actual"] == "modificar_altura":
     if st.button("⬅️ Volver al Menú Principal"):
@@ -386,7 +470,7 @@ elif st.session_state["vista_actual"] == "modificar_altura":
             st.rerun()
 
 # ==========================================
-# 5. BOTÓN FORMACIÓN EN VIVO
+# 6. BOTÓN FORMACIÓN EN VIVO
 # ==========================================
 elif st.session_state["vista_actual"] == "formacion":
     if st.button("⬅️ Volver al Menú Principal"):
@@ -472,7 +556,7 @@ elif st.session_state["vista_actual"] == "formacion":
             )
 
 # ==========================================
-# 6. BOTÓN CUMPLEAÑOS
+# 7. BOTÓN CUMPLEAÑOS
 # ==========================================
 elif st.session_state["vista_actual"] == "cumpleanos":
     if st.button("⬅️ Volver al Menú Principal"):
@@ -510,7 +594,7 @@ elif st.session_state["vista_actual"] == "cumpleanos":
         st.info("No se encontraron cumpleaños con los filtros seleccionados.")
 
 # ==========================================
-# 7. BOTÓN REGISTRO DE AUSENTES
+# 8. BOTÓN REGISTRO DE AUSENTES
 # ==========================================
 elif st.session_state["vista_actual"] == "registro_ausentes":
     if st.button("⬅️ Volver al Menú Principal"):
@@ -530,7 +614,7 @@ elif st.session_state["vista_actual"] == "registro_ausentes":
         st.success("¡Personal completo! No hay ausentes registrados.")
 
 # ==========================================
-# 8. BOTÓN ACTUALIZACIONES (CON CONTRASEÑA)
+# 9. BOTÓN ACTUALIZACIONES (CON CONTRASEÑA)
 # ==========================================
 elif st.session_state["vista_actual"] == "actualizaciones":
     if st.button("⬅️ Volver al Menú Principal"):
@@ -564,12 +648,37 @@ elif st.session_state["vista_actual"] == "actualizaciones":
 
         st.divider()
 
+        # SECCIÓN NOVEDADES GENERALES (ADMIN)
+        st.markdown("### 📢 Gestión de Novedades y Avisos Generales")
+        dict_novs_admin = obtener_novedades_generales()
+        if dict_novs_admin:
+            lista_admin_novs = [
+                {
+                    "ID": k,
+                    "Fecha": v.get("fecha_hora"),
+                    "Autor": v.get("autor"),
+                    "Título": v.get("titulo"),
+                    "Mensaje": v.get("mensaje")
+                }
+                for k, v in dict_novs_admin.items()
+            ]
+            st.dataframe(lista_admin_novs, use_container_width=True)
+            if st.button("🗑️ Borrar TODAS las Novedades y Avisos Generales"):
+                requests.delete(NOVEDADES_URL)
+                st.success("Todas las novedades generales fueron eliminadas.")
+                st.rerun()
+        else:
+            st.info("No hay novedades o avisos generales activos.")
+
+        st.divider()
+
+        # SECCIÓN HISTORIAL DE ALTURAS
         historial = obtener_historial()
         if historial:
             st.markdown("### 📝 Historial de Modificaciones de Altura:")
             st.dataframe(historial, use_container_width=True)
 
-            if st.button("🗑️ Borrar Historial de Cambios"):
+            if st.button("🗑️ Borrar Historial de Cambios de Altura"):
                 requests.delete(HISTORIAL_URL)
                 st.success("Historial eliminado.")
                 st.rerun()
@@ -583,7 +692,7 @@ elif st.session_state["vista_actual"] == "actualizaciones":
             st.rerun()
 
 # ==========================================
-# 9. BOTÓN REINICIAR (TODOS AUSENTES)
+# 10. BOTÓN REINICIAR (TODOS AUSENTES)
 # ==========================================
 elif st.session_state["vista_actual"] == "reiniciar":
     if st.button("⬅️ Volver al Menú Principal"):
