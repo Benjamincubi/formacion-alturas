@@ -258,9 +258,25 @@ col_m3.metric("Ausentes", len(ausentes_list))
 st.divider()
 
 # ==========================================
-# 📌 MENÚ PRINCIPAL
+# 📌 MENÚ PRINCIPAL Y TABLERO DE ANUNCIOS
 # ==========================================
 if st.session_state["vista_actual"] == "menu":
+    
+    # --- NOVEDADES Y ANUNCIOS EN PANTALLA PRINCIPAL ---
+    dict_novs_principal = obtener_novedades_generales()
+    if dict_novs_principal:
+        st.markdown("### 📢 Tablero de Anuncios y Novedades Generales")
+        items_novs = list(dict_novs_principal.items())
+        items_novs.reverse()
+
+        for key_id, info in items_novs:
+            st.warning(
+                f"📌 **{info.get('titulo', 'Aviso')}**\n\n"
+                f"{info.get('mensaje', '')}\n\n"
+                f"_Publicado por: {info.get('autor', 'Anónimo')} - {info.get('fecha_hora', '')}_"
+            )
+        st.divider()
+
     st.subheader("📋 Menú Principal")
     
     col1, col2 = st.columns(2)
@@ -395,7 +411,7 @@ elif st.session_state["vista_actual"] == "dar_ausente":
             st.rerun()
 
 # ==========================================
-# 4. BOTÓN NOVEDADES Y AVISOS (NUEVO)
+# 4. BOTÓN NOVEDADES Y AVISOS (PUBLICACIÓN Y BORRADO LIBRE)
 # ==========================================
 elif st.session_state["vista_actual"] == "novedades_generales":
     if st.button("⬅️ Volver al Menú Principal"):
@@ -407,40 +423,37 @@ elif st.session_state["vista_actual"] == "novedades_generales":
     with st.expander("✏️ Publicar una nueva Novedad / Aviso", expanded=True):
         nombres = [v["nombre"] for k, v in sorted(personas_db.items())] if personas_db else []
         autor_nov = st.selectbox("Publicado por:", ["-- Seleccionar --"] + nombres, key="autor_nov")
-        titulo_nov = st.text_input("Asunto / Título:", placeholder="Ej: Examen del martes / Apuntes disponiles / Guardia...")
+        titulo_nov = st.text_input("Asunto / Título:", placeholder="Ej: Examen del martes / Apuntes disponibles / Guardia...")
         msg_nov = st.text_area("Detalle del aviso:", placeholder="Escribí el contenido de la novedad aquí...")
 
-        if st.button("Publish Novedad / Aviso", type="primary"):
+        if st.button("📢 Publicar Anuncio", type="primary", use_container_width=True):
             if autor_nov != "-- Seleccionar --" and titulo_nov.strip() and msg_nov.strip():
                 publicar_novedad_general(autor_nov, titulo_nov, msg_nov)
-                st.success("¡Novedad publicada correctamente!")
+                st.success("¡Anuncio publicado! Es visible en la pantalla principal para todos.")
                 st.rerun()
             else:
                 st.error("Por favor completa tu nombre, asunto y detalle antes de publicar.")
 
     st.divider()
-    st.markdown("### 📌 Avisos Publicados:")
+    st.markdown("### 📌 Avisos Activos:")
     dict_novs = obtener_novedades_generales()
 
     if dict_novs:
-        # Ordenar más recientes primero
         items_novs = list(dict_novs.items())
         items_novs.reverse()
 
         for key_id, info in items_novs:
-            with st.container():
-                st.markdown(f"#### 🔹 {info.get('titulo', 'Sin Título')}")
-                st.write(f"{info.get('mensaje', '')}")
-                st.caption(f"👤 **Publicado por:** {info.get('autor', 'Anónimo')} | 🕒 **Fecha:** {info.get('fecha_hora', '')}")
-                
-                # Opción de borrado individual por el autor/usuario
-                col_b1, col_b2 = st.columns([1, 3])
-                with col_b1:
-                    if st.button("🗑️ Borrar mi aviso", key=f"del_{key_id}"):
-                        eliminar_novedad_general(key_id)
-                        st.success("Aviso eliminado.")
-                        st.rerun()
-                st.divider()
+            col_info, col_del = st.columns([3, 1])
+            with col_info:
+                st.markdown(f"🔹 **{info.get('titulo', 'Sin Título')}**")
+                st.write(info.get('mensaje', ''))
+                st.caption(f"👤 {info.get('autor', 'Anónimo')} - {info.get('fecha_hora', '')}")
+            with col_del:
+                if st.button("🗑️ Eliminar", key=f"user_del_{key_id}"):
+                    eliminar_novedad_general(key_id)
+                    st.success("Aviso eliminado.")
+                    st.rerun()
+            st.divider()
     else:
         st.info("No hay avisos o novedades publicados por el momento.")
 
@@ -614,20 +627,20 @@ elif st.session_state["vista_actual"] == "registro_ausentes":
         st.success("¡Personal completo! No hay ausentes registrados.")
 
 # ==========================================
-# 9. BOTÓN ACTUALIZACIONES (CON CONTRASEÑA)
+# 9. BOTÓN ACTUALIZACIONES (PANEL DE ADMINISTRADOR)
 # ==========================================
 elif st.session_state["vista_actual"] == "actualizaciones":
     if st.button("⬅️ Volver al Menú Principal"):
         ir_a("menu")
         st.rerun()
 
-    st.subheader("🔐 Registro de Cambios y Panel de Control")
+    st.subheader("🔐 Panel de Control de Administrador")
 
     if "admin_autenticado" not in st.session_state:
         st.session_state["admin_autenticado"] = False
 
     if not st.session_state["admin_autenticado"]:
-        pwd_input = st.text_input("Ingresá la contraseña para acceder:", type="password")
+        pwd_input = st.text_input("Ingresá la contraseña de administrador:", type="password")
         if st.button("Ingresar"):
             if pwd_input == ADMIN_PASSWORD:
                 st.session_state["admin_autenticado"] = True
@@ -638,8 +651,7 @@ elif st.session_state["vista_actual"] == "actualizaciones":
     else:
         st.success("🔓 Sesión autorizada como Administrador")
         
-        # Opciones de administración masiva
-        st.markdown("### ⚙️ Acciones de Administrador")
+        st.markdown("### ⚙️ Acciones Generales")
         if st.button("✅ Marcar a TODOS como Presentes", type="primary", use_container_width=True):
             datos_actualizados = {k: {**v, "presente": True, "novedad": ""} for k, v in personas_db.items()}
             requests.put(FIREBASE_URL, json=datos_actualizados)
@@ -648,31 +660,7 @@ elif st.session_state["vista_actual"] == "actualizaciones":
 
         st.divider()
 
-        # SECCIÓN NOVEDADES GENERALES (ADMIN)
-        st.markdown("### 📢 Gestión de Novedades y Avisos Generales")
-        dict_novs_admin = obtener_novedades_generales()
-        if dict_novs_admin:
-            lista_admin_novs = [
-                {
-                    "ID": k,
-                    "Fecha": v.get("fecha_hora"),
-                    "Autor": v.get("autor"),
-                    "Título": v.get("titulo"),
-                    "Mensaje": v.get("mensaje")
-                }
-                for k, v in dict_novs_admin.items()
-            ]
-            st.dataframe(lista_admin_novs, use_container_width=True)
-            if st.button("🗑️ Borrar TODAS las Novedades y Avisos Generales"):
-                requests.delete(NOVEDADES_URL)
-                st.success("Todas las novedades generales fueron eliminadas.")
-                st.rerun()
-        else:
-            st.info("No hay novedades o avisos generales activos.")
-
-        st.divider()
-
-        # SECCIÓN HISTORIAL DE ALTURAS
+        # HISTORIAL DE CAMBIOS DE ALTURA
         historial = obtener_historial()
         if historial:
             st.markdown("### 📝 Historial de Modificaciones de Altura:")
@@ -680,7 +668,7 @@ elif st.session_state["vista_actual"] == "actualizaciones":
 
             if st.button("🗑️ Borrar Historial de Cambios de Altura"):
                 requests.delete(HISTORIAL_URL)
-                st.success("Historial eliminado.")
+                st.success("Historial de alturas eliminado.")
                 st.rerun()
         else:
             st.info("No hay modificaciones de altura registradas todavía.")
