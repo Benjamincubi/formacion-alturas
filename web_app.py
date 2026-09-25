@@ -94,10 +94,6 @@ CRONOGRAMA_ENCARGADOS = [
     {"fecha": "20/07/2027", "encargada": "OP Daiana Elizabeth MERINO", "encargado": "OP Claudio NUÑEZ"}
 ]
 
-# Simulación: Fecha del cumpleaños de Benjamin Cubi calculada dinámicamente para la próxima semana
-hoy_temp = datetime.now().date()
-fecha_simulada_cubi = hoy_temp + timedelta(days=5)
-
 LISTA_CUMPLEANOS_RAW = [
     ("Diego Nicolas ACUÑA", 7, 11),
     ("Luciana Belen AGUERO", 4, 6),
@@ -107,7 +103,7 @@ LISTA_CUMPLEANOS_RAW = [
     ("Julieta Anabella BRUNEL", 30, 6),
     ("Tomas CAPELLA", 1, 3),
     ("Santiago CASSOL", 12, 12),
-    ("Benjamin David CUBI", fecha_simulada_cubi.day, fecha_simulada_cubi.month),
+    ("Benjamin David CUBI", 17, 4),
     ("Maria DIAZ VARSI", 27, 6),
     ("Maria Celeste ESCALANTE", None, None),
     ("Rodolfo Octavio FERNANDEZ", 5, 9),
@@ -541,7 +537,7 @@ elif st.session_state["vista_actual"] == "actualizaciones":
         ir_a("menu")
         st.rerun()
 
-    st.subheader("🔐 Registro de Cambios de Altura")
+    st.subheader("🔐 Registro de Cambios y Panel de Control")
 
     if "admin_autenticado" not in st.session_state:
         st.session_state["admin_autenticado"] = False
@@ -558,6 +554,16 @@ elif st.session_state["vista_actual"] == "actualizaciones":
     else:
         st.success("🔓 Sesión autorizada como Administrador")
         
+        # Opciones de administración masiva
+        st.markdown("### ⚙️ Acciones de Administrador")
+        if st.button("✅ Marcar a TODOS como Presentes", type="primary", use_container_width=True):
+            datos_actualizados = {k: {**v, "presente": True, "novedad": ""} for k, v in personas_db.items()}
+            requests.put(FIREBASE_URL, json=datos_actualizados)
+            st.success("Se marcaron todos los efectivos como PRESENTES.")
+            st.rerun()
+
+        st.divider()
+
         historial = obtener_historial()
         if historial:
             st.markdown("### 📝 Historial de Modificaciones de Altura:")
@@ -569,6 +575,8 @@ elif st.session_state["vista_actual"] == "actualizaciones":
                 st.rerun()
         else:
             st.info("No hay modificaciones de altura registradas todavía.")
+
+        st.divider()
 
         if st.button("🔒 Cerrar Sesión de Administrador"):
             st.session_state["admin_autenticado"] = False
