@@ -10,6 +10,10 @@ st.set_page_config(page_title="Gestor de Alturas - Formación", layout="wide")
 st_autorefresh(interval=3000, limit=None, key="formacion_autorefresh")
 
 FIREBASE_URL = "https://formacion-cupro-alfa-default-rtdb.firebaseio.com/personas.json"
+HISTORIAL_URL = "https://formacion-cupro-alfa-default-rtdb.firebaseio.com/historial_cambios.json"
+
+# Contraseña para acceder a la sección de Actualizaciones
+ADMIN_PASSWORD = "1234"
 
 DATOS_INICIALES = {
     "01": {"nombre": "OP Lopez Federico", "altura": 1.75, "presente": False, "novedad": ""},
@@ -90,8 +94,12 @@ CRONOGRAMA_ENCARGADOS = [
     {"fecha": "20/07/2027", "encargada": "OP Daiana Elizabeth MERINO", "encargado": "OP Claudio NUÑEZ"}
 ]
 
+# Simulación: Fecha del cumpleaños de Benjamin Cubi calculada dinámicamente para la próxima semana
+hoy_temp = datetime.now().date()
+fecha_simulada_cubi = hoy_temp + timedelta(days=5)
+
 LISTA_CUMPLEANOS_RAW = [
-    ("Diego Nicolas ACUÑA", None, None),
+    ("Diego Nicolas ACUÑA", 7, 11),
     ("Luciana Belen AGUERO", 4, 6),
     ("Florencia Jazmin ANDRADE", 12, 5),
     ("Ariel Joaquin ARIAS UCEDO", None, None),
@@ -99,7 +107,7 @@ LISTA_CUMPLEANOS_RAW = [
     ("Julieta Anabella BRUNEL", 30, 6),
     ("Tomas CAPELLA", 1, 3),
     ("Santiago CASSOL", 12, 12),
-    ("Benjamin David CUBI", 17, 4),
+    ("Benjamin David CUBI", fecha_simulada_cubi.day, fecha_simulada_cubi.month),
     ("Maria DIAZ VARSI", 27, 6),
     ("Maria Celeste ESCALANTE", None, None),
     ("Rodolfo Octavio FERNANDEZ", 5, 9),
@@ -128,6 +136,33 @@ LISTA_CUMPLEANOS_RAW = [
     ("Lucia Maria Fernanda SOTO BABICKI", 22, 7),
     ("Emilia Alejandra TOLEDO", 13, 2)
 ]
+
+MESES_NOMBRES = {
+    0: "Todos los Meses",
+    1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril",
+    5: "Mayo", 6: "Junio", 7: "Julio", 8: "Agosto",
+    9: "Septiembre", 10: "Octubre", 11: "Noviembre", 12: "Diciembre"
+}
+
+def registrar_cambio(detalle):
+    try:
+        ahora = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        nuevo_registro = {"fecha_hora": ahora, "detalle": detalle}
+        requests.post(HISTORIAL_URL, json=nuevo_registro, timeout=3)
+    except Exception:
+        pass
+
+def obtener_historial():
+    try:
+        res = requests.get(HISTORIAL_URL, timeout=3)
+        data = res.json()
+        if data:
+            lista = list(data.values())
+            lista.reverse()
+            return lista
+        return []
+    except Exception:
+        return []
 
 def obtener_datos():
     try:
@@ -232,6 +267,10 @@ if st.session_state["vista_actual"] == "menu":
             ir_a("registro_ausentes")
             st.rerun()
 
+        if st.button("🔐 Actualizaciones (Historial)", use_container_width=True):
+            ir_a("actualizaciones")
+            st.rerun()
+
         if st.button("⚠️ Reiniciar: Marcar a TODOS como Ausentes", use_container_width=True):
             ir_a("reiniciar")
             st.rerun()
@@ -272,7 +311,7 @@ elif st.session_state["vista_actual"] == "encargados":
         st.dataframe(CRONOGRAMA_ENCARGADOS, use_container_width=True)
 
 # ==========================================
-# 2. BOTÓN DAR PRESENTE (INDEPENDIENTE)
+# 2. BOTÓN DAR PRESENTE
 # ==========================================
 elif st.session_state["vista_actual"] == "dar_presente":
     if st.button("⬅️ Volver al Menú Principal"):
@@ -293,11 +332,12 @@ elif st.session_state["vista_actual"] == "dar_presente":
         if st.button("Confirmar PRESENTE", type="primary", use_container_width=True):
             url_node = FIREBASE_URL.replace(".json", f"/{pid}.json")
             requests.patch(url_node, json={"presente": True, "novedad": ""})
+            registrar_cambio(f"✅ {mi_nombre} se marcó como PRESENTE.")
             st.success("✅ Marcado como PRESENTE.")
             st.rerun()
 
 # ==========================================
-# 3. BOTÓN REGISTRAR AUSENTE (INDEPENDIENTE)
+# 3. BOTÓN REGISTRAR AUSENTE
 # ==========================================
 elif st.session_state["vista_actual"] == "dar_ausente":
     if st.button("⬅️ Volver al Menú Principal"):
@@ -321,6 +361,8 @@ elif st.session_state["vista_actual"] == "dar_ausente":
         if st.button("Confirmar AUSENCIA", type="primary", use_container_width=True):
             url_node = FIREBASE_URL.replace(".json", f"/{pid}.json")
             requests.patch(url_node, json={"presente": False, "novedad": motivo})
+            detalle_motivo = f" ({motivo})" if motivo else ""
+            registrar_cambio(f"❌ {mi_nombre} se marcó como AUSENTE{detalle_motivo}.")
             st.warning("❌ Registrado como AUSENTE con la novedad ingresada.")
             st.rerun()
 
@@ -339,11 +381,13 @@ elif st.session_state["vista_actual"] == "modificar_altura":
     if mi_nombre != "-- Seleccionar --":
         pid = [k for k, v in personas_db.items() if v["nombre"] == mi_nombre][0]
         pdata = personas_db[pid]
+        alt_anterior = float(pdata["altura"])
 
-        nueva_alt = st.number_input("Mi Altura (m):", min_value=1.0, max_value=2.5, value=float(pdata["altura"]), step=0.01)
+        nueva_alt = st.number_input("Mi Altura (m):", min_value=1.0, max_value=2.5, value=alt_anterior, step=0.01)
         if st.button("Guardar Altura"):
             url_node = FIREBASE_URL.replace(".json", f"/{pid}.json")
             requests.patch(url_node, json={"altura": nueva_alt})
+            registrar_cambio(f"📏 {mi_nombre} cambió su altura de {alt_anterior:.2f}m a {nueva_alt:.2f}m.")
             st.success("Altura guardada correctamente en la base de datos.")
             st.rerun()
 
@@ -434,7 +478,7 @@ elif st.session_state["vista_actual"] == "formacion":
             )
 
 # ==========================================
-# 6. BOTÓN CUMPLEAÑOS (SIMPLIFICADO + BUSCADOR)
+# 6. BOTÓN CUMPLEAÑOS (CON FILTRO POR MES Y BUSCADOR)
 # ==========================================
 elif st.session_state["vista_actual"] == "cumpleanos":
     if st.button("⬅️ Volver al Menú Principal"):
@@ -443,26 +487,39 @@ elif st.session_state["vista_actual"] == "cumpleanos":
 
     st.subheader("🎂 Listado de Cumpleaños")
 
-    # Preparar lista limpia
+    col_f1, col_f2 = st.columns([1, 1])
+
+    with col_f1:
+        mes_seleccionado = st.selectbox(
+            "📅 Filtrar por Mes:", 
+            options=list(MESES_NOMBRES.keys()), 
+            format_func=lambda x: MESES_NOMBRES[x]
+        )
+
+    with col_f2:
+        busqueda = st.text_input("🔍 Buscar por Nombre:", placeholder="Escribí un nombre o apellido...")
+
+    # Generar lista de cumpleaños
     tabla_cumples = []
     for nombre, dia, mes in LISTA_CUMPLEANOS_RAW:
+        # Filtrar por mes
+        if mes_seleccionado != 0 and mes != mes_seleccionado:
+            continue
+            
+        # Filtrar por texto
+        if busqueda and busqueda.lower() not in nombre.lower():
+            continue
+
         fecha_fmt = f"{dia:02d}/{mes:02d}" if (dia and mes) else "Sin registrar"
         tabla_cumples.append({"Nombre Completo": nombre, "Cumpleaños": fecha_fmt})
 
-    # Buscador de personas
-    busqueda = st.text_input("🔍 Buscar persona en la lista:", placeholder="Escribí un nombre o apellido...")
-    
-    if busqueda:
-        tabla_filtrada = [
-            p for p in tabla_cumples 
-            if busqueda.lower() in p["Nombre Completo"].lower()
-        ]
-        st.dataframe(tabla_filtrada, use_container_width=True)
-    else:
+    if tabla_cumples:
         st.dataframe(tabla_cumples, use_container_width=True)
+    else:
+        st.info("No se encontraron cumpleaños con los filtros seleccionados.")
 
 # ==========================================
-# 7. BOTÓN REGISTRO DE AUSENTES (EN TIEMPO REAL)
+# 7. BOTÓN REGISTRO DE AUSENTES
 # ==========================================
 elif st.session_state["vista_actual"] == "registro_ausentes":
     if st.button("⬅️ Volver al Menú Principal"):
@@ -482,7 +539,48 @@ elif st.session_state["vista_actual"] == "registro_ausentes":
         st.success("¡Personal completo! No hay ausentes registrados.")
 
 # ==========================================
-# 8. BOTÓN REINICIAR (TODOS AUSENTES)
+# 8. BOTÓN ACTUALIZACIONES (CON CONTRASEÑA)
+# ==========================================
+elif st.session_state["vista_actual"] == "actualizaciones":
+    if st.button("⬅️ Volver al Menú Principal"):
+        ir_a("menu")
+        st.rerun()
+
+    st.subheader("🔐 Registro de Actualizaciones y Cambios")
+
+    if "admin_autenticado" not in st.session_state:
+        st.session_state["admin_autenticado"] = False
+
+    if not st.session_state["admin_autenticado"]:
+        pwd_input = st.text_input("Ingresá la contraseña para acceder:", type="password")
+        if st.button("Ingresar"):
+            if pwd_input == ADMIN_PASSWORD:
+                st.session_state["admin_autenticado"] = True
+                st.success("Acceso concedido.")
+                st.rerun()
+            else:
+                st.error("Contraseña incorrecta.")
+    else:
+        st.success("🔓 Sesión autorizada como Administrador")
+        
+        historial = obtener_historial()
+        if historial:
+            st.markdown("### 📝 Historial de Modificaciones:")
+            st.dataframe(historial, use_container_width=True)
+
+            if st.button("🗑️ Borrar Historial de Cambios"):
+                requests.delete(HISTORIAL_URL)
+                st.success("Historial eliminado.")
+                st.rerun()
+        else:
+            st.info("No hay modificaciones registradas todavía.")
+
+        if st.button("🔒 Cerrar Sesión de Administrador"):
+            st.session_state["admin_autenticado"] = False
+            st.rerun()
+
+# ==========================================
+# 9. BOTÓN REINICIAR (TODOS AUSENTES)
 # ==========================================
 elif st.session_state["vista_actual"] == "reiniciar":
     if st.button("⬅️ Volver al Menú Principal"):
@@ -498,6 +596,7 @@ elif st.session_state["vista_actual"] == "reiniciar":
         if st.button("❌ REINICIAR: Marcar a TODOS como Ausentes", type="primary"):
             datos_actualizados = {k: {**v, "presente": False, "novedad": ""} for k, v in personas_db.items()}
             requests.put(FIREBASE_URL, json=datos_actualizados)
+            registrar_cambio("⚠️ Se REINICIÓ la formación: Todo el personal pasó a estado AUSENTE.")
             st.success("Se reinició la formación. Todo el personal figura ausente.")
             ir_a("menu")
             st.rerun()
